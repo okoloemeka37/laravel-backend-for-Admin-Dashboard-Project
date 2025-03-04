@@ -20,13 +20,13 @@ function login(Request $request){
 }
 function user(){
 $user=User::where('id','!=',Auth::id())->orderby('id','desc')->get();
-return response()->json($user);
+return response()->json(['user'=>$user,'id'=>Auth::id()]);
 }
 
 function adduser(Request $request){
     $request->validate([
-        'name'=>'required',
-        'email'=>'required|email',
+        'name'=>'required|unique:users,name',
+        'email'=>'required|email|unique:users,email',
         'password'=>'required'
       ]);
       User::create([
@@ -35,14 +35,33 @@ function adduser(Request $request){
         'password'=>bcrypt($request['password'])
       ]);
       $user=User::where('id','!=',Auth::id())->orderby('id','desc')->get();
-      return response()->json(['message'=>'User Added Successfully','status'=>200,'user'=>$user]);
+  return response()->json(['message'=>'User Added Successfully','status'=>200,'user'=>$user,'ol'=>Auth::user()->id]);
+}
+
+function update(Request $request,$id){
+    $request->validate([
+        'name'=>'required|unique:users,name,'.$id,
+        'email'=>'required|email|unique:users,email,'.$id,
+        
+      ]);
+      $user=User::find($id);
+      $user->name=$request['name'];
+      $user->email=$request['email'];
+
+      $user->save();
+      $user=User::where('id','!=',Auth::id())->orderby('id','desc')->get();
+      return response()->json(['message'=>'User Updated Successfully','status'=>200,'user'=>$user]);
 }
 
 function delete($id)  {
-    User::destroy($id);
+ User::destroy($id);
     $user=User::where('id','!=',Auth::id())->orderby('id','desc')->get();
     return response()->json(['message'=>'User Deleted Successfully','status'=>200,'user'=>$user]);
 }
-
+function logout(Request $request) {
+  
+  $request->user()->tokens()->delete();
+return response()->json(['message'=>'Logged Out Successfully','status'=>200]);
+}
 }
 
