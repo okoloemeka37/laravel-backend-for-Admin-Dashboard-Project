@@ -7,17 +7,22 @@ use Illuminate\Http\Request;
 
 class userController extends Controller
 {
-function login(Request $request){
-  $request->validate([
-    'email'=>'required|email',
-    'password'=>'required'
-  ]);
-  if(Auth::attempt(['email' => $request['email'], 'password' => $request['password']])){
-    $user = Auth::user();
-    $token=$user->createToken('zyler')->plainTextToken;
-    return response()->json(['token'=>$token,'user'=>$user]);
+  public function login(Request $request)
+  {
+      $request->validate([
+          'email' => 'required|email',
+          'password' => 'required'
+      ]);
+  
+      if (!Auth::attempt(['email' => $request->email, 'password' => $request->password])) {
+          return response()->json(['error' => 'Invalid email or password','status'=>401]);
+      }
+  
+      $user = Auth::user();
+      $token = $user->createToken('zyler')->plainTextToken;
+  
+      return response()->json(['token' => $token, 'user' => $user]);
   }
-}
 function user(){
 $user=User::where('id','!=',Auth::id())->orderby('id','desc')->get();
 return response()->json(['user'=>$user,'id'=>Auth::id()]);
